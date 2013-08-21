@@ -9,7 +9,16 @@ from slumber.serialize import Serializer
 
 __all__ = ["Resource", "API"]
 
-logger = logging.getLogger("slumber")
+
+try:  # Python 2.7+
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
+logger = logging.getLogger(__name__)
+logger.addHandler(NullHandler())
 
 
 def url_join(base, *args):
