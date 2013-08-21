@@ -1,3 +1,4 @@
+import logging
 import posixpath
 import urlparse
 
@@ -7,6 +8,8 @@ from slumber import exceptions
 from slumber.serialize import Serializer
 
 __all__ = ["Resource", "API"]
+
+logger = logging.getLogger("slumber")
 
 
 def url_join(base, *args):
@@ -105,9 +108,13 @@ class Resource(ResourceAttributesMixin, object):
         resp = self._store["session"].request(method, url, data=data, params=params, files=files, headers=headers)
 
         if 400 <= resp.status_code <= 499:
-            raise exceptions.HttpClientError("Client Error %s: %s" % (resp.status_code, url), response=resp, content=resp.content)
+            error_string = "Client Error %s: %s" % (resp.status_code, url)
+            logger.error("%s, Response from server: %s" % (error_string, resp.content))
+            raise exceptions.HttpClientError(error_string, response=resp, content=resp.content)
         elif 500 <= resp.status_code <= 599:
-            raise exceptions.HttpServerError("Server Error %s: %s" % (resp.status_code, url), response=resp, content=resp.content)
+            error_string = "Server Error %s: %s" % (resp.status_code, url)
+            logger.error("%s, Response from server: %s" % (error_string, resp.content))
+            raise exceptions.HttpServerError(error_string, response=resp, content=resp.content)
 
         self._ = resp
 
